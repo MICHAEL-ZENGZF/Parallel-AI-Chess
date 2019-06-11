@@ -1,7 +1,0 @@
-model1 takes 8.944108 ms, model2 takes 1.316711 ms to make a move
-model1 takes 17.661231 ms, model2 takes 2.333212 ms to make a move
-
-Summary:
-
-model1 wins 2 times, model2 wins 0 times, draw 0 times
-model1 takes 13.302670 ms, model2 takes 1.824961 ms in avg to make a move
