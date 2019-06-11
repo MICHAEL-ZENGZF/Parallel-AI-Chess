@@ -1,5 +1,5 @@
 #include"AI.h"
-#define MAXSTEP 4
+#define MAXSTEP 3
 //#define CHECK_SCORE
 
 int num_nodes=0;

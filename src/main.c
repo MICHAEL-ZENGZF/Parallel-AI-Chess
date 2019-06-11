@@ -77,8 +77,9 @@ void AI_Contest(int model1,int model2)
 
     GameState gameState=env_init();
     Player player1,player2;
-    player1.color=WHITE;
-    player2.color=BLACK;
+    int rand_color=(rand()%2)*2-1;
+    player1.color=rand_color;
+    player2.color=rand_color*-1;
     player1.id=0;
     player2.id=1;
     player1.identity=player2.identity=COMPUTER;
@@ -126,19 +127,23 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
     gui_init_window(argc,argv);
     GameState gameState=env_init();
     Player player1,player2;
-    player1.color=WHITE;
-    player2.color=BLACK;
+    int rand_color=(rand()%2)*2-1;
+    player1.color=rand_color;
+    player2.color=rand_color*-1;
     player1.id=0;
     player2.id=1;
     player1.identity=player2.identity=COMPUTER;
     gui_gameplay_window(&gameState);
 
-    int ContestTimes=50;
+    int ContestTimes=2;
+    char str_color[2]={'W','B'};
     
     FILE *fp = NULL;
     char fileName[30];
     sprintf(fileName,"model%d_vs_model%d",model1,model2);
-    printf("model%d_vs_model%d:\n\n",model1,model2);
+    printf("\nmodel%d:%c vs model%d:%c\n\n",
+        model1,str_color[MAX(player1.color*-1,0)],
+        model2,str_color[MAX(player2.color*-1,0)]);
     fp = fopen(fileName, "w");
     int model1_wins=0,model2_wins=0,draw=0;
     double model1_sum_time=0,model2_sum_time=0;
@@ -146,26 +151,31 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
         int quit=0;
         int round1=0, round2=0;
         double model1_time=0,model2_time=0;
+        double model1_round_time=0,model2_round_time=0;
         while(quit==0)
         {
             if(gameState.playerTurn==player1.color){
-                quit=ai_experiment(&gameState,&player1,model1,&model1_time);
+                quit=ai_experiment(&gameState,&player1,model1,&model1_round_time);
                 round1++;
             }
             else{
-                quit=ai_experiment(&gameState,&player2,model2,&model2_time);
+                quit=ai_experiment(&gameState,&player2,model2,&model2_round_time);
                 round2++;
             }
+            model1_time+=model1_round_time;
+            model2_time+=model2_round_time;
             // sleep(1);
             //print_board(&gameState);
             gui_refresh(&gameState,&player1);
             
-            if(round1+round2>100)break;
+            if(round1+round2>200)break;
         }
-        model1_sum_time+=model1_time/round1;
-        model2_sum_time+=model2_time/round2;
+        model1_time/=round1;
+        model2_time/=round2;
+        model1_sum_time+=model1_time;
+        model2_sum_time+=model2_time;
         fprintf(fp,"model%d takes %f ms, model%d takes %f ms to make a move\n",
-            model1, model1_time/round1, model2, model2_time/round2);
+            model1, model1_time, model2, model2_time);
         if(quit==0) draw++;
         else if(quit==1){
             if(gameState.playerTurn==player1.color)model1_wins++;
@@ -176,6 +186,9 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
             else model1_wins++;
         }
         env_reset(&gameState);
+
+        printf("game %d, model%d takes %f ms, model%d takes %f ms to make a move\n",
+            i+1,model1,model1_time,model2,model2_time);
     }
     printf("\nSummary:\n\n");
     fprintf(fp,"\nSummary:\n\n");

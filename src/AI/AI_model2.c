@@ -1,6 +1,6 @@
 #include"AI.h"
 #include <omp.h>
-#define MAXSTEP 4
+#define MAXSTEP 3
 //#define CHECK_SCORE
 
 //This is for simple spawn
@@ -34,7 +34,7 @@ int ai_model2_simulate(GameState *gameState, Player *player, int depth)
     assert(MovesStart.count==MovesEnd.count);
     int *Scores=malloc(sizeof(int)*total_num_moves);
     
-    #pragma omp parallel for shared(total_num_moves,gameState,player,MovesStart,MovesEnd,depth,Scores,playerTurn)
+    // #pragma omp parallel for shared(total_num_moves,gameState,player,MovesStart,MovesEnd,depth,Scores,playerTurn)
     for(int i=0;i<total_num_moves;i++)
     {
         GameState simulation=env_copy_State(gameState);
