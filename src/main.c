@@ -133,7 +133,7 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
     player1.identity=player2.identity=COMPUTER;
     gui_gameplay_window(&gameState);
 
-    int ContestTimes=2;
+    int ContestTimes=30;
     
     FILE *fp = NULL;
     char fileName[30];
