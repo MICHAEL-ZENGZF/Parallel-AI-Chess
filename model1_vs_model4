@@ -1,0 +1,7 @@
+model1 takes 1.756196 ms, model4 takes 0.000089 ms to make a move
+model1 takes 1.605580 ms, model4 takes 0.000077 ms to make a move
+
+Summary:
+
+model1 wins 0 times, model4 wins 2 times, draw 0 times
+model1 takes 1.680888 ms, model4 takes 0.000083 ms in avg to make a move

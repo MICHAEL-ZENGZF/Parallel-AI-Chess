@@ -1,0 +1,4 @@
+model0 takes 0.002946 ms, model2 takes 0.000705 ms to make a move
+model0 takes 0.023272 ms, model2 takes 0.002070 ms to make a move
+model0 wins 2 times, model0 wins 0 times, draw 2 times
+model0 takes 0.013109 ms, model2 takes 0.001387 ms in avg to make a move
