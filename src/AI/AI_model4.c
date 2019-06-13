@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 //#define CHECK_SCORE
-#define MAX_STEP 5
+#define MAX_STEP 4
 #define MAX_NODES_2_COMPUTE 4000000
 #define MAX_TASK_SIZE 6
 
@@ -24,7 +24,7 @@ int ai_model4_simulate(GameState *gameState, Player *player,
 {
     #pragma omp critical
     computed_nodes++;
-    if(computed_nodes>=MAX_NODES_2_COMPUTE||depth>=MAX_STEP)
+    if(computed_nodes>=MAX_NODES_2_COMPUTE||depth<=0)
         return ai_sum_scores(gameState,player);
 
     int MaxScore=-60000,MinScore=60000;
@@ -81,7 +81,7 @@ int ai_model4_simulate(GameState *gameState, Player *player,
             {
                 if(id+j>=total_num_moves)break;
                 int score=playerTurn*ai_model4_simulate(&simulation[i],player,
-                    linear_rearrange(Scores[i],range,MinScore),depth+1);
+                    linear_rearrange(Scores[i],range,MinScore),depth-1);
                 Scores[i]=score;
                 env_free_state(&simulation[i]);
             }
@@ -102,7 +102,7 @@ int ai_model4_simulate(GameState *gameState, Player *player,
 }
 
 //the play function for the root in the searching tree, return the quit from check_end
-int ai_model4_play(GameState *gameState, Player *player)
+int ai_model4_play(GameState *gameState, Player *player, int maxStep)
 {
     computed_nodes=0;
     int check_end=env_check_end(gameState,player);
@@ -152,11 +152,11 @@ int ai_model4_play(GameState *gameState, Player *player)
         GameState simulation=env_copy_State(gameState);
         env_play(&simulation,player,MovesStart[i],MovesEnd[i]);
         score=playerTurn*ai_model4_simulate(&simulation,player,
-            2,0);
+            2,maxStep);
         Scores[i]=score;
         env_free_state(&simulation);
     }
-    printf("Computed Nodes:%d\n",computed_nodes);
+    // printf("Computed Nodes:%d\n",computed_nodes);
     int BestMovesCnt=0;
     vector BestMovesID;
     vector_init(&BestMovesID);

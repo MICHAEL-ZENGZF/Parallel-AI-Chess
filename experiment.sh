@@ -1,6 +1,5 @@
-./bin/chess 0 1
-./bin/chess 1 2
-./bin/chess 1 3
-./bin/chess 1 4
-./bin/chess 1 5
-./bin/chess 1 6
+for i in {0..3}
+do
+    ./bin/chess 1 2 $i
+    ./bin/chess 1 3 $i
+done

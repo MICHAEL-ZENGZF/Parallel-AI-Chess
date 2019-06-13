@@ -52,7 +52,7 @@ int ai_model1_simulate(GameState *gameState, Player *player, int depth)
 }
 
 //the play function for the root in the searching tree, return the quit from check_end
-int ai_model1_play(GameState *gameState, Player *player)
+int ai_model1_play(GameState *gameState, Player *player, int maxStep)
 {
     int check_end=env_check_end(gameState,player);
     if(check_end!=0)
@@ -102,7 +102,7 @@ int ai_model1_play(GameState *gameState, Player *player)
     {
         GameState simulation=env_copy_State(gameState);
         env_play(&simulation,player,MovesStart[i],MovesEnd[i]);
-        score=playerTurn*ai_model1_simulate(&simulation,player,MAXSTEP);
+        score=playerTurn*ai_model1_simulate(&simulation,player,maxStep);
         Scores[i]=score;
         env_free_state(&simulation);
     }

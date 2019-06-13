@@ -122,14 +122,16 @@ void AI_Contest(int model1,int model2)
     
 }
 
-void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
+void AI_ContestWithGUI(int argc, char *argv[])
 {
+    assert(argc>3);
+    int model1=atoi(argv[1]),model2=atoi(argv[2]);
+    int maxStep=atoi(argv[3]);
+
     gui_init_window(argc,argv);
     GameState gameState=env_init();
     Player player1,player2;
-    int rand_color=(rand()%2)*2-1;
-    player1.color=rand_color;
-    player2.color=rand_color*-1;
+
     player1.id=0;
     player2.id=1;
     player1.identity=player2.identity=COMPUTER;
@@ -140,14 +142,25 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
     
     FILE *fp = NULL;
     char fileName[30];
-    sprintf(fileName,"model%d_vs_model%d",model1,model2);
-    printf("\nmodel%d:%c vs model%d:%c\n\n",
-        model1,str_color[MAX(player1.color*-1,0)],
-        model2,str_color[MAX(player2.color*-1,0)]);
+    sprintf(fileName,"model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
+    printf("model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
     fp = fopen(fileName, "w");
+    
     int model1_wins=0,model2_wins=0,draw=0;
     double model1_sum_time=0,model2_sum_time=0;
     for(int i=0;i<ContestTimes;i++){
+
+        int rand_color=(rand()%2)*2-1;
+        player1.color=rand_color;
+        player2.color=rand_color*-1;
+
+        printf("\nmodel%d:%c vs model%d:%c\n",
+            model1,str_color[MAX(player1.color*-1,0)],
+            model2,str_color[MAX(player2.color*-1,0)]);
+        fprintf(fp,"\nmodel%d:%c vs model%d:%c\n",
+            model1,str_color[MAX(player1.color*-1,0)],
+            model2,str_color[MAX(player2.color*-1,0)]);
+
         int quit=0;
         int round1=0, round2=0;
         double model1_time=0,model2_time=0;
@@ -155,11 +168,13 @@ void AI_ContestWithGUI(int argc, char *argv[],int model1,int model2)
         while(quit==0)
         {
             if(gameState.playerTurn==player1.color){
-                quit=ai_experiment(&gameState,&player1,model1,&model1_round_time);
+                quit=ai_experiment(&gameState,&player1,
+                    model1,&model1_round_time,maxStep);
                 round1++;
             }
             else{
-                quit=ai_experiment(&gameState,&player2,model2,&model2_round_time);
+                quit=ai_experiment(&gameState,&player2,
+                    model2,&model2_round_time,maxStep);
                 round2++;
             }
             model1_time+=model1_round_time;
@@ -223,7 +238,7 @@ int main(int argc, char *argv[])
     //     Game(argc,argv,1);
     // }
     
-    AI_ContestWithGUI(argc,argv,atoi(argv[1]),atoi(argv[2]));
+    AI_ContestWithGUI(argc,argv);
     
     
     //test_env();

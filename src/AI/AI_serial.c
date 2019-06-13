@@ -49,7 +49,7 @@ int ai_serial_simulate(GameState *gameState, Player *player, int depth)
 }
 
 //the play function for the root in the searching tree, return the quit from check_end
-int ai_serial_play(GameState *gameState, Player *player)
+int ai_serial_play(GameState *gameState, Player *player, int maxStep)
 {
     int check_end=env_check_end(gameState,player);
     if(check_end!=0)
@@ -85,13 +85,13 @@ int ai_serial_play(GameState *gameState, Player *player)
     for(int i=0;i<cnt;i++)
     {
         env_play(gameState,player,vector_get(&MovesStart,i),vector_get(&MovesEnd,i));
-        score=playerTurn*ai_serial_simulate(gameState,player,MAXSTEP);
+        score=playerTurn*ai_serial_simulate(gameState,player,maxStep);
         vector_add(&Scores,score);
         MaxScore=MAX(MaxScore,score);
         env_undo(gameState);
     }
     max_num_nodes=MAX(max_num_nodes,num_nodes);
-    printf("Max Num Nodes:%d\n",max_num_nodes);
+    // printf("Max Num Nodes:%d\n",max_num_nodes);
     int BestMovesCnt=0;
     vector BestMovesID;
     vector_init(&BestMovesID);

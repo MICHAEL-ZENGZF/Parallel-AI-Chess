@@ -50,8 +50,51 @@ int ai_model2_simulate(GameState *gameState, Player *player, int depth)
     return MaxScore*playerTurn;
 }
 
+int ai_model2_simulate_layer1(GameState *gameState, Player *player, int depth)
+{
+    if(depth<=0)return ai_sum_scores(gameState,player);
+
+    int MaxScore=-60000;
+    int playerTurn=gameState->playerTurn;
+
+    int total_num_moves=0;
+    vector MovesStart,MovesEnd;
+    vector_init(&MovesStart);
+    vector_init(&MovesEnd);
+    
+    int cnt=0;
+    for(int i=0;i<64;i++)
+    {
+        vector CurLegalMoves=env_get_legal_moves(gameState,player,i);
+        cnt=CurLegalMoves.count;
+        if(cnt>0){
+            vector_cat(&MovesEnd,&CurLegalMoves);
+            for(int j=0;j<cnt;j++) vector_add(&MovesStart,i);
+        }
+        vector_free(&CurLegalMoves);
+        total_num_moves+=cnt;
+    }
+
+    assert(MovesStart.count==MovesEnd.count);
+    int *Scores=malloc(sizeof(int)*total_num_moves);
+    #pragma omp parallel for shared(total_num_moves,gameState,player,MovesStart,MovesEnd,depth,Scores,playerTurn) schedule(static,4)
+    for(int i=0;i<total_num_moves;i++)
+    {
+        GameState simulation=env_copy_State(gameState);
+        env_play(&simulation,player,vector_get(&MovesStart,i),vector_get(&MovesEnd,i));
+        int score=playerTurn*ai_model2_simulate(&simulation,player,depth-1);
+        Scores[i]=score;
+        env_free_state(&simulation);
+    }
+    for(int i=0;i<total_num_moves;i++)MaxScore=MAX(MaxScore,Scores[i]);
+    vector_free(&MovesStart);
+    vector_free(&MovesEnd);
+    free(Scores);
+    return MaxScore*playerTurn;
+}
+
 //the play function for the root in the searching tree, return the quit from check_end
-int ai_model2_play(GameState *gameState, Player *player)
+int ai_model2_play(GameState *gameState, Player *player, int maxStep)
 {
     int check_end=env_check_end(gameState,player);
     if(check_end!=0)
@@ -80,7 +123,6 @@ int ai_model2_play(GameState *gameState, Player *player)
     int *MovesEnd=malloc(sizeof(int)*total_num_moves);
     int *Scores=malloc(sizeof(int)*total_num_moves);
 
-    omp_set_num_threads(16);
     
     for(int i=0;i<container_size;i++)
     {
@@ -95,12 +137,14 @@ int ai_model2_play(GameState *gameState, Player *player)
 
     // assert(MovesStart.count==MovesEnd.count);
     int playerTurn=gameState->playerTurn;
-    #pragma omp parallel for shared(gameState,player,MovesStart,MovesEnd,Scores,playerTurn)
+    omp_set_num_threads(16);
+    omp_set_nested(1);
+    #pragma omp parallel for shared(gameState,player,MovesStart,MovesEnd,Scores,playerTurn) schedule(static,4)
     for(int i=0;i<total_num_moves;i++)
     {
         GameState simulation=env_copy_State(gameState);
         env_play(&simulation,player,MovesStart[i],MovesEnd[i]);
-        score=playerTurn*ai_model2_simulate(&simulation,player,MAXSTEP);
+        score=playerTurn*ai_model2_simulate_layer1(&simulation,player,maxStep);
         Scores[i]=score;
         env_free_state(&simulation);
     }

@@ -3,6 +3,8 @@
 #include"timer.h"
 //scores for different pieces at different position
 
+#define MAXSTEP_PLAY 3
+
 int pos_scores_pawn[2][64]=
 {
     {0,  0,  0,  0,  0,  0,  0,  0,
@@ -212,25 +214,26 @@ int ai_play(GameState *gameState,Player *player, int model)
     switch(model)
     {
         case AI_SERIAL:
-            quit=ai_serial_play(gameState,player);
+            quit=ai_serial_play(gameState,player,MAXSTEP_PLAY);
             break;
         case EASY:
-            quit=ai_model1_play(gameState,player);
+            quit=ai_model1_play(gameState,player,MAXSTEP_PLAY);
             break;
         case MEDIUM:
-            quit=ai_model2_play(gameState,player);
+            quit=ai_model2_play(gameState,player,MAXSTEP_PLAY);
             break;
         case ADVANCED:
-            quit=ai_model3_play(gameState,player);
+            quit=ai_model3_play(gameState,player,MAXSTEP_PLAY);
             break;
         case 4:
-            quit=ai_model4_play(gameState,player);
+            quit=ai_model4_play(gameState,player,MAXSTEP_PLAY);
             break;
     }
     return quit;
 }
 
-int ai_experiment(GameState *gameState,Player *player, int model, double *time)
+int ai_experiment(GameState *gameState,Player *player, 
+    int model, double *time, int maxStep)
 {
     int quit=0;
     struct stopwatch_t* timer = stopwatch_create ();
@@ -238,25 +241,25 @@ int ai_experiment(GameState *gameState,Player *player, int model, double *time)
     switch(model)
     {
         case AI_SERIAL:
-            quit=ai_serial_play(gameState,player);
+            quit=ai_serial_play(gameState,player,maxStep);
             break;
         case EASY:
-            quit=ai_model1_play(gameState,player);
+            quit=ai_model1_play(gameState,player,maxStep);
             break;
         case MEDIUM:
-            quit=ai_model2_play(gameState,player);
+            quit=ai_model2_play(gameState,player,maxStep);
             break;
         case ADVANCED:
-            quit=ai_model3_play(gameState,player);
+            quit=ai_model3_play(gameState,player,maxStep);
             break;
         case 4:
-            quit=ai_model4_play(gameState,player);
+            quit=ai_model4_play(gameState,player,maxStep);
             break;
         case 5:
-            quit=ai_model2_AB_play(gameState,player);
+            quit=ai_model2_AB_play(gameState,player,maxStep);
             break;
         case 6:
-            quit=ai_model3_AB_play(gameState,player);
+            quit=ai_model3_AB_play(gameState,player,maxStep);
             break;
     }
     *time=stopwatch_stop (timer);

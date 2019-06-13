@@ -34,19 +34,20 @@ extern int piece_scores[7];
 
 //the global function for ai to select model and play
 int ai_play(GameState *gameState,Player *player, int model);
-int ai_experiment(GameState *gameState,Player *player, int model, double *time);
+int ai_experiment(GameState *gameState,Player *player, 
+    int model, double *time, int maxStep);
 
 //sum up the scores including pieces and location scores
 int ai_sum_scores(GameState *gameState, Player *player);
 
 //different model of AI to play
-int ai_serial_play(GameState *gameState, Player *player);
-int ai_model1_play(GameState *gameState, Player *player);
-int ai_model2_play(GameState *gameState, Player *player);
-int ai_model3_play(GameState *gameState, Player *player);
-int ai_model4_play(GameState *gameState, Player *player);
-int ai_model2_AB_play(GameState *gameState, Player *player);
-int ai_model3_AB_play(GameState *gameState, Player *player);
+int ai_serial_play(GameState *gameState, Player *player, int maxStep);
+int ai_model1_play(GameState *gameState, Player *player, int maxStep);
+int ai_model2_play(GameState *gameState, Player *player, int maxStep);
+int ai_model3_play(GameState *gameState, Player *player, int maxStep);
+int ai_model4_play(GameState *gameState, Player *player, int maxStep);
+int ai_model2_AB_play(GameState *gameState, Player *player, int maxStep);
+int ai_model3_AB_play(GameState *gameState, Player *player, int maxStep);
 //Marshall`s experiment AI
 int ai_easy_play(GameState *gameState, Player *player);
 

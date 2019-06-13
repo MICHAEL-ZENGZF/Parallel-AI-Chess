@@ -34,6 +34,7 @@ int ai_model3_simulate(GameState *gameState, Player *player, int depth)
     assert(MovesStart.count==MovesEnd.count);
     int *Scores=malloc(sizeof(int)*total_num_moves);
     
+    // #pragma omp single
     for(int i=0;i<total_num_moves;i++)
     {
         #pragma omp task shared(Scores)
@@ -54,7 +55,7 @@ int ai_model3_simulate(GameState *gameState, Player *player, int depth)
 }
 
 //the play function for the root in the searching tree, return the quit from check_end
-int ai_model3_play(GameState *gameState, Player *player)
+int ai_model3_play(GameState *gameState, Player *player, int maxStep)
 {
     int check_end=env_check_end(gameState,player);
     if(check_end!=0)
@@ -84,7 +85,8 @@ int ai_model3_play(GameState *gameState, Player *player)
     int *Scores=malloc(sizeof(int)*total_num_moves);
     omp_set_num_threads(16);
     omp_set_nested(1);
-    #pragma omp parallel for shared(container_size,gameState,MovesStart,MovesEnd,accu_container_size_arr)
+    // #pragma omp parallel for shared(container_size,gameState,MovesStart,MovesEnd,accu_container_size_arr)
+    
     for(int i=0;i<container_size;i++)
     {
         vector CurLegalMoves=gameState->container[i].legal_moves;
@@ -98,15 +100,24 @@ int ai_model3_play(GameState *gameState, Player *player)
 
     // assert(MovesStart.count==MovesEnd.count);
     int playerTurn=gameState->playerTurn;
-    #pragma omp parallel for shared(gameState,player,MovesStart,MovesEnd,Scores,playerTurn)
-    for(int i=0;i<total_num_moves;i++)
+    #pragma omp parallel
     {
-        GameState simulation=env_copy_State(gameState);
-        env_play(&simulation,player,MovesStart[i],MovesEnd[i]);
-        score=playerTurn*ai_model3_simulate(&simulation,player,MAXSTEP);
-        Scores[i]=score;
-        env_free_state(&simulation);
+        #pragma omp single
+        for(int i=0;i<total_num_moves;i++)
+        {
+            #pragma omp task shared(gameState,player,MovesStart,MovesEnd,Scores,playerTurn)
+            {
+                GameState simulation=env_copy_State(gameState);
+                env_play(&simulation,player,MovesStart[i],MovesEnd[i]);
+                score=playerTurn*ai_model3_simulate(&simulation,player,maxStep);
+                Scores[i]=score;
+                env_free_state(&simulation);
+            }
+        }
+        #pragma omp taskwait
     }
+    
+    
     int BestMovesCnt=0;
     vector BestMovesID;
     vector_init(&BestMovesID);
