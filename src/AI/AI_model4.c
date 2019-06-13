@@ -8,7 +8,7 @@
 #define MAX_NODES_2_COMPUTE 4000000
 #define MAX_TASK_SIZE 6
 
-//This is for simple spawn
+//This is for model4
 
 int computed_nodes;
 

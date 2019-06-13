@@ -3,7 +3,7 @@
 #define MAXSTEP 4
 //#define CHECK_SCORE
 
-//This is for simple spawn
+//This is for model3 Alpha-Beta Pruning
 
 //the simulation function for the branches in the searching tree
 int ai_model3_AB_simulate(GameState *gameState, Player *player,

@@ -5,6 +5,8 @@
 int num_nodes=0;
 int max_num_nodes=0;
 
+//This is serial version
+
 //the simulation function for the branches in the searching tree
 int ai_serial_simulate(GameState *gameState, Player *player, int depth)
 {

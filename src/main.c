@@ -4,6 +4,9 @@
 #include"constant.h"
 #include"timer.h"
 
+#include<sys/stat.h>
+#include<sys/types.h>
+
 #define MODEL 1
 
 int play(GameState *gameState,Player *player,int model)
@@ -71,55 +74,96 @@ void fprint_board(GameState *gameState,FILE *fp)
     fprintf(fp,"\n*****************\n");
 }
 
-void AI_Contest(int model1,int model2)
+void AI_Contest(int argc, char *argv[])
 {
-    int ContestTimes=100;
+    assert(argc>3);
+    int model1=atoi(argv[1]),model2=atoi(argv[2]);
+    int maxStep=atoi(argv[3]);
 
     GameState gameState=env_init();
     Player player1,player2;
-    int rand_color=(rand()%2)*2-1;
-    player1.color=rand_color;
-    player2.color=rand_color*-1;
+
     player1.id=0;
     player2.id=1;
     player1.identity=player2.identity=COMPUTER;
-    int quit=0;
 
-    FILE *fp = NULL;
+    int ContestTimes=50;
+    char str_color[2]={'W','B'};
     
-    int round=0;
+    mkdir("data",S_IRWXU);
+    FILE *fp = NULL;
+    char fileName[30];
+    sprintf(fileName,"data/model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
+    printf("model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
+    fp = fopen(fileName, "w");
+    
     int model1_wins=0,model2_wins=0,draw=0;
-    for(int i=0;i<ContestTimes;i++)
-    {
-        fp = fopen("TestLog/test", "a");
-        round=0;
-        quit=0;
+    double model1_sum_time=0,model2_sum_time=0;
+    for(int i=0;i<ContestTimes;i++){
+
+        int rand_color=(rand()%2)*2-1;
+        player1.color=rand_color;
+        player2.color=rand_color*-1;
+
+        printf("\nmodel%d:%c vs model%d:%c\n",
+            model1,str_color[MAX(player1.color*-1,0)],
+            model2,str_color[MAX(player2.color*-1,0)]);
+        fprintf(fp,"\nmodel%d:%c vs model%d:%c\n",
+            model1,str_color[MAX(player1.color*-1,0)],
+            model2,str_color[MAX(player2.color*-1,0)]);
+
+        int quit=0;
+        int round1=0, round2=0;
+        double model1_time=0,model2_time=0;
+        double model1_round_time=0,model2_round_time=0;
         while(quit==0)
         {
-            if(gameState.playerTurn==player1.color)quit=ai_play(&gameState,&player1,model1);
-            else quit=ai_play(&gameState,&player2,model2);
-            //print_board(&gameState);
-            //fprint_board(&gameState,fp);
-            round++;
-            if(round>=300)break;
+            if(gameState.playerTurn==player1.color){
+                quit=ai_experiment(&gameState,&player1,
+                    model1,&model1_round_time,maxStep);
+                round1++;
+            }
+            else{
+                quit=ai_experiment(&gameState,&player2,
+                    model2,&model2_round_time,maxStep);
+                round2++;
+            }
+            model1_time+=model1_round_time;
+            model2_time+=model2_round_time;
+            
+            if(round1+round2>200)break;
         }
+        model1_time/=round1;
+        model2_time/=round2;
+        model1_sum_time+=model1_time;
+        model2_sum_time+=model2_time;
+        fprintf(fp,"model%d takes %f ms, model%d takes %f ms to make a move\n",
+            model1, model1_time, model2, model2_time);
         if(quit==0) draw++;
-        else if(quit==1) 
-        {
-            if(gameState.playerTurn==player1.color)model2_wins++;
-            else model1_wins++;
-        }
-        else if(quit==2)
-        {
+        else if(quit==1){
             if(gameState.playerTurn==player1.color)model1_wins++;
             else model2_wins++;
         }
-        fprintf(fp,"model1 wins %d times, model2 wins %d times, draw %d times\n",model1_wins,model2_wins,draw);
-        fclose(fp);
-    }
-    
+        else if(quit==2){
+            if(gameState.playerTurn==player1.color)model2_wins++;
+            else model1_wins++;
+        }
+        env_reset(&gameState);
 
-    
+        printf("game %d, model%d takes %f ms, model%d takes %f ms to make a move\n",
+            i+1,model1,model1_time,model2,model2_time);
+    }
+    printf("\nSummary:\n\n");
+    fprintf(fp,"\nSummary:\n\n");
+    fprintf(fp,"model%d wins %d times, model%d wins %d times, draw %d times\n",
+    model1,model1_wins,model2,model2_wins,draw);
+    printf("model%d wins %d times, model%d wins %d times, draw %d times\n",
+    model1,model1_wins,model2,model2_wins,draw);
+    fprintf(fp,"model%d takes %f ms, model%d takes %f ms in avg to make a move\n",
+        model1,model1_sum_time/ContestTimes, model2, model2_sum_time/ContestTimes);
+    printf("model%d takes %f ms, model%d takes %f ms in avg to make a move\n",
+        model1,model1_sum_time/ContestTimes, model2, model2_sum_time/ContestTimes);
+    fclose(fp);
 }
 
 void AI_ContestWithGUI(int argc, char *argv[])
@@ -137,9 +181,10 @@ void AI_ContestWithGUI(int argc, char *argv[])
     player1.identity=player2.identity=COMPUTER;
     gui_gameplay_window(&gameState);
 
-    int ContestTimes=2;
+    int ContestTimes=50;
     char str_color[2]={'W','B'};
     
+    mkdir("data",S_IRWXU);
     FILE *fp = NULL;
     char fileName[30];
     sprintf(fileName,"data/model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
@@ -221,32 +266,13 @@ void AI_ContestWithGUI(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {   
-    #ifdef SUPEROLD
-    printf("\n\n\\********************\\\n");
-    printf("You are seeing this message because you are using a very old version of Glib\n");
-    printf("This is strongly NOT recommended because when TODAY`s HUMAN BEINGS download you project from Internet\n");
-    printf("You expect them to install the latest glib instead of some outdated version\n");
-    printf("But after all we can`t do anything to stop you.\n");
-    printf("Even if you may not really want to\n");
-    #endif
     srand(time(0));
-    //gui_init_window(argc,argv);
-    //test_gui_menu(argc,argv);//specially created for aria to test
-    // while(1)
     stopwatch_init ();
     // while(1){
     //     Game(argc,argv,1);
     // }
     
-    AI_ContestWithGUI(argc,argv);
-    
-    
-    //test_env();
-    //Test_AI(1);
-    //AI_Contest(1,2);
-    //test_gamePlay_window(argc,argv);
-    //AI_ContestWithGUI(argc,argv,1,2);
-    //Test_AI_withGUI(argc,argv,1);
+    AI_Contest(argc,argv);
     
     return 0;
 }
