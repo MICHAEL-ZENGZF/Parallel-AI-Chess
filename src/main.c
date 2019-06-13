@@ -142,7 +142,7 @@ void AI_ContestWithGUI(int argc, char *argv[])
     
     FILE *fp = NULL;
     char fileName[30];
-    sprintf(fileName,"model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
+    sprintf(fileName,"data/model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
     printf("model%d_vs_model%d maxStep:%d\n",model1,model2,maxStep);
     fp = fopen(fileName, "w");
     
